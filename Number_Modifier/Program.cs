@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Number_Modifier.Model;
+using Number_Modifier.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ builder.Services.AddScoped<intllgr_dbms2Context>().AddDbContext<intllgr_dbms2Con
 
 #endregion
 
+builder.Services.AddScoped<IMSISDNRepository, MSISDNRepository>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
