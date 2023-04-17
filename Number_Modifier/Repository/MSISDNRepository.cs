@@ -26,7 +26,7 @@ namespace Number_Modifier.Repository
             var response = new ApiResponse();
             try
             {
-                var checkForNewnumber = _context.PreCustomers.FirstOrDefault(x => x.Msisdn.ToLower() == NewNumber && x.OnboardingStatus == "otp-sent");
+                var checkForNewnumber = _context.PreCustomers.FirstOrDefault(x => x.Msisdn.ToLower() == NewNumber);
                 if (checkForNewnumber != null)
                 {
                     _context.PreCustomers.Remove(checkForNewnumber);
@@ -36,33 +36,30 @@ namespace Number_Modifier.Repository
                 {
                     checkForOldNumber.Msisdn = NewNumber;
                     _context.PreCustomers.Update(checkForOldNumber);
-                    var resp = _context.Customers.FirstOrDefault(o => o.Status.ToLower() == "graduated" && o.Msisdn == OldNumber);
-                    if (resp != null)
+                    if (checkForOldNumber.OnboardingStatus.ToLower() == "customer-profiled")
                     {
-                        resp.Msisdn = NewNumber;
-                        _context.Customers.Update(resp);
-                        KycInfo kycInfo = new KycInfo()
+                        var resp = _context.Customers.FirstOrDefault(o => o.Msisdn == OldNumber);
+                        if (resp != null)
                         {
-                            Created = DateTime.Now,
-                            Modified = DateTime.Now,
-                            PreCustomerId = resp.Id,
-                            Type = "MSISDN Update",
-                            InputName = $"Old Number || {OldNumber}",
-                            InputValue = $"New Number || {NewNumber}",
-                            InputType = "MSISDN Update",
-                        };
-                        _context.KycInfos.Add(kycInfo);
-                        await _context.SaveChangesAsync();
+                            resp.Msisdn = NewNumber;
+                            _context.Customers.Update(resp);
 
-                        response.code = "200";
-                        response.message = "MSISDN Updated Successfully";
+                        }
                     }
-                    else
+                    KycInfo kycInfo = new KycInfo()
                     {
-                        response.code = "200";
-                        response.message = "MSISDN Owner Not In Customer";
-                    }
-
+                        Created = DateTime.Now,
+                        Modified = DateTime.Now,
+                        PreCustomerId = checkForOldNumber.Id,
+                        Type = "MSISDN Update",
+                        InputName = $"Old Number || {OldNumber}",
+                        InputValue = $"New Number || {NewNumber}",
+                        InputType = "MSISDN Update",
+                    };
+                    _context.KycInfos.Add(kycInfo);
+                    await _context.SaveChangesAsync();
+                    response.code = "200";
+                    response.message = "MSISDN Updated Successfully";
                 }
                 else
                 {
